@@ -41,6 +41,8 @@ public:
 
     void faireMouvement(CARDINAL cardinal);
 
+
+
 };
 
 

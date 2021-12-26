@@ -84,6 +84,12 @@ public:
     }
 
     std::map<CARDINAL, int> actions_possibles(const Position &position);
+
+    std::vector<std::vector<int>> matrice_action_etat();
+
+    std::vector<int> faire_action(Position etat, CARDINAL action);
+
+    void passe(Position position);
 };
 
 
