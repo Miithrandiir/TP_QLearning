@@ -9,7 +9,7 @@
 #include "Ile.hpp"
 #include "Agent.hpp"
 
-#define MAX_MOUVEMENT 20
+#define MAX_MOUVEMENT 100
 
 class Pirate {
 private:

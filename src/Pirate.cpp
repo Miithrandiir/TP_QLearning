@@ -10,27 +10,11 @@
  * @param cardinal
  */
 void Pirate::faireMouvement(CARDINAL cardinal) {
-
-    switch (cardinal) {
-        case NORD:
-            position = std::make_pair(position.first, position.second - 1);
-            break;
-        case EST:
-            position = std::make_pair(position.first+ 1, position.second );
-            break;
-        case SUD:
-            position = std::make_pair(position.first , position.second+ 1);
-            break;
-        case OUEST:
-            position = std::make_pair(position.first- 1, position.second );
-            break;
-    }
+    position = ile.nouvelle_position(get_position(), cardinal);
     butin += ile.get_carte()[position.second][position.first];
     if(ile.get_carte()[position.second][position.first] == TRESOR) {
         this->trouver_tresor = true;
-
     }
-    ile.passe(position);
 }
 
 void Pirate::faireMouvementAleatoire(const std::map<CARDINAL, int> &actions) {
@@ -69,22 +53,20 @@ void Pirate::faireMouvementActions(const std::map<CARDINAL, int> &actions) {
 }
 
 bool Pirate::deplacement() {
-    if(nb_deplacement > MAX_MOUVEMENT || a_trouver_tresor()) {
+    if(nb_deplacement >= MAX_MOUVEMENT || a_trouver_tresor()) {
         return false;
     }
-
-    while(nb_deplacement < MAX_MOUVEMENT && !a_trouver_tresor()) {
-        double rand = gen_alea_epsilon_greedy();
-        nb_deplacement++;
-        auto actions = ile.actions_possibles(get_position());
-        if (rand > epsilon) {
-            faireMouvementAleatoire(actions);
-        } else {
-            faireMouvementActions(actions);
-        }
+    double rand = gen_alea_epsilon_greedy();
+    nb_deplacement++;
+    auto actions = ile.actions_possibles(get_position());
+    ile.passe(get_position());
+    if (rand <= epsilon) {
+        faireMouvementActions(actions);
+    } else {
+        faireMouvementAleatoire(actions);
     }
-
     return true;
+
 }
 
 Position Pirate::gen_alea_position() {
@@ -113,15 +95,8 @@ bool Pirate::executer_agent(Agent& agent) {
     nb_deplacement++;
 
     auto action_disponible = ile.actions_possibles(position);
-    std::vector<CARDINAL> tmp;
-    for(auto item : action_disponible)
-        tmp.push_back(item.first);
-
 
     CARDINAL meilleur_action = agent.meilleur_action(position);
-    //regarde si l'action est possible
-    if(std::find(tmp.begin(), tmp.end(), meilleur_action) == tmp.end())
-        return false;
 
     Position res = ile.faire_action(position, meilleur_action);
     position = res;

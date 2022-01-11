@@ -40,6 +40,7 @@ int main() {
 //    std::cout << "Gagné : " << nb_gagnant << '\n' << "Perdant : " << (nb_exemples - nb_gagnant) << '\n' << "Moyenne : "
 //              << ((double) nb_gagnant / (double) nb_exemples) * 100 << " %" << std::endl;
 
+    comparer_algorithme(3,5,10,10);
     comparer_algorithme(5,7,10,10);
 
     return 0;
@@ -47,19 +48,23 @@ int main() {
 
 std::pair<int, double> faire_epsilon_greedy(Pirate &pirate) {
     Pirate cpy_pirate(pirate);
+    int nbStep = 0;
     auto start = std::chrono::high_resolution_clock::now();
-    cpy_pirate.deplacement();
+    while(cpy_pirate.deplacement()) nbStep++;
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::high_resolution_clock::now() - start);
-    return std::make_pair(cpy_pirate.get_nb_deplacement(), duration.count());
+    return std::make_pair(nbStep, duration.count());
 }
 
 std::pair<int, double> faire_q_learning(Pirate &pirate, Agent &agent) {
     Pirate cpy_pirate(pirate);
     Agent cpy_agent(agent);
+    cpy_agent.effectuer_episodes(MAX_MOUVEMENT);
     int nb_step = 0;
     auto start = std::chrono::high_resolution_clock::now();
-    while (cpy_pirate.executer_agent(cpy_agent)) nb_step++;
+
+    while (cpy_pirate.executer_agent(cpy_agent)) {nb_step++;};
+
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::high_resolution_clock::now() - start);
 
@@ -85,11 +90,11 @@ void comparer_algorithme(int width, int height, int nb_bottles, int nb_exemples)
 
     for (int i = 0; i < nb_exemples; ++i) {
         Ile ile(width, height, nb_bottles);
-        Pirate pirate(ile);
-        Agent agent(0.9, ile);
-        auto res_greedy = faire_epsilon_greedy(pirate);
+        Pirate pirate(ile, 0.9);
+        Agent agent(0.75, ile);
         auto res_q_learning = faire_q_learning(pirate, agent);
         auto res_monte_carlo = faire_monte_carlo(pirate, ile, agent, 100);
+        auto res_greedy = faire_epsilon_greedy(pirate);
 
         stat_greedy.first += res_greedy.first;
         stat_greedy.second += res_greedy.second / 1000000;

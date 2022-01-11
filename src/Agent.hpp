@@ -45,8 +45,6 @@ public:
 
     double get_max_of_Q(Position&);
 
-    int cardinal_to_int(CARDINAL&);
-
     void effectuer_episode();
 
     void effectuer_episodes(int nb);

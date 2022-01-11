@@ -32,26 +32,6 @@ double Agent::get_max_of_Q(Position &_position) {
 
 }
 
-int Agent::cardinal_to_int(CARDINAL & cardinal) {
-    switch (cardinal) {
-
-        case NORD:
-            return 0;
-            break;
-        case EST:
-            return 2;
-            break;
-        case SUD:
-            return 1;
-            break;
-        case OUEST:
-            return 3;
-            break;
-    }
-
-    return 0;
-}
-
 void Agent::effectuer_episode() {
 
     Ile tmp_ile = Ile(this->ile);
