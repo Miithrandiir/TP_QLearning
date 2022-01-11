@@ -7,6 +7,7 @@
 
 
 #include "Ile.hpp"
+#include "Agent.hpp"
 
 #define MAX_MOUVEMENT 20
 
@@ -17,13 +18,15 @@ private:
     int butin;
     Position position;
     double epsilon;
+    bool trouver_tresor;
 
 public:
 
-    Pirate(Ile &ile, double epsilon = 0.9) : ile(ile), epsilon(epsilon) {
+    Pirate(Ile ile, double epsilon = 0.9) : ile(ile), epsilon(epsilon) {
         nb_deplacement = 0;
         butin = 0;
         position = gen_alea_position();
+        trouver_tresor = false;
     }
 
     const Position get_position() const { return position; }
@@ -41,7 +44,11 @@ public:
 
     void faireMouvement(CARDINAL cardinal);
 
+    bool executer_agent(Agent &agent);
 
+    bool a_trouver_tresor() const {
+        return trouver_tresor;
+    }
 
 };
 

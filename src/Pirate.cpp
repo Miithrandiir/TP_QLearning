@@ -3,7 +3,7 @@
 //
 
 #include "Pirate.hpp"
-
+#include <algorithm>
 /**
  * @important   position.first = Y
  *              position.second = X
@@ -29,7 +29,7 @@ void Pirate::faireMouvement(CARDINAL cardinal) {
     if(ile.get_carte()[position.second][position.first] == TRESOR) {
 
         std::cout << "Le pirate a trouvé le trésor !!" << '\n' << "Il part avec un butin de " << butin << std::endl;
-        exit(0);
+        this->trouver_tresor = true;
 
     }
     ile.passe(position);
@@ -104,4 +104,30 @@ double Pirate::gen_alea_epsilon_greedy() {
     std::uniform_real_distribution<double> distribution(0, 1);
 
     return distribution(gen);
+}
+
+bool Pirate::executer_agent(Agent& agent) {
+    if(nb_deplacement > MAX_MOUVEMENT || a_trouver_tresor())
+        return false;
+    nb_deplacement++;
+
+    auto action_disponible = ile.actions_possibles(position);
+    std::vector<CARDINAL> tmp;
+    for(auto item : action_disponible)
+        tmp.push_back(item.first);
+
+
+    CARDINAL meilleur_action = agent.meilleur_action(position);
+    //regarde si l'action est possible
+    if(std::find(tmp.begin(), tmp.end(), meilleur_action) == tmp.end())
+        return false;
+
+    Position res = ile.faire_action(position, meilleur_action);
+    position = res;
+    int _butin = ile.passe(position);
+    if(_butin == TRESOR)
+        trouver_tresor = true;
+    butin += _butin;
+
+    return true;
 }

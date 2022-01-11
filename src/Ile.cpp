@@ -10,7 +10,7 @@ void Ile::addItemToMap(std::pair<int, int> position, TypeItem typeItem) {
     carte[position.second][position.first] = typeItem;
 }
 
-std::pair<int, int> Ile::gen_alea_position(Carte &map) {
+std::pair<int, int> Ile::gen_alea_position() {
     std::random_device rd;
     std::mt19937_64 gen(rd());
     std::uniform_int_distribution<int> distributionX(0, get_taille_x() - 1);
@@ -19,7 +19,7 @@ std::pair<int, int> Ile::gen_alea_position(Carte &map) {
     int posX = distributionX(gen);
     int posY = distributionY(gen);
 
-    while (map[posY][posX] != 0) {
+    while (carte[posY][posX] != 0) {
         posX = distributionX(gen);
         posY = distributionY(gen);
     }
@@ -27,65 +27,54 @@ std::pair<int, int> Ile::gen_alea_position(Carte &map) {
     return std::make_pair(posX, posY);
 }
 
-std::map<CARDINAL, int> Ile::actions_possibles(const Position &position) {
-    assert(position.first >= 0 && position.first < tailleX && position.second >= 0 && position.second < tailleY);
+std::map<CARDINAL, int> Ile::actions_possibles(const Position &_position) {
+    assert(_position.first >= 0 && _position.first < tailleX && _position.second >= 0 && _position.second < tailleY);
     std::map<CARDINAL, int> actions_possibles;
 
     //verif nord
-    if (position.second - 1 >= 0) {
-        actions_possibles[NORD] = carte[position.second - 1][position.first];
+    if (_position.second != 0 && (_position.second - 1) >= 0) {
+        Position newp = nouvelle_position(_position, NORD);
+        assert(newp.first >= 0 && newp.first < tailleX && newp.second >= 0 && newp.second < tailleY);
+        actions_possibles[NORD] = carte[_position.second - 1][_position.first];
     }
     //verif est
-    if (position.first + 1 >= 0 && position.first + 1 < tailleX) {
-        actions_possibles[EST] = carte[position.second][position.first + 1];
+    if ((_position.first + 1) >= 0 && (_position.first + 1) < tailleX) {
+        Position newp = nouvelle_position(_position, EST);
+        assert(newp.first >= 0 && newp.first < tailleX && newp.second >= 0 && newp.second < tailleY);
+        actions_possibles[EST] = carte[_position.second][_position.first + 1];
     }
     //verif sud
-    if (position.second + 1 >= 0 && position.second + 1 < tailleY) {
-        actions_possibles[SUD] = carte[position.second + 1][position.first];
+    if ((_position.second + 1) >= 0 && (_position.second + 1) < tailleY) {
+        Position newp = nouvelle_position(_position, SUD);
+        assert(newp.first >= 0 && newp.first < tailleX && newp.second >= 0 && newp.second < tailleY);
+        actions_possibles[SUD] = carte[_position.second + 1][_position.first];
     }
     //verif ouest
-    if (position.first - 1 >= 0) {
-        actions_possibles[OUEST] = carte[position.second][position.first - 1];
+    if (_position.first != 0 && (_position.first - 1) >= 0) {
+        Position newp = nouvelle_position(_position, OUEST);
+        assert(newp.first >= 0 && newp.first < tailleX && newp.second >= 0 && newp.second < tailleY);
+        actions_possibles[OUEST] = carte[_position.second][_position.first - 1];
     }
+
     return actions_possibles;
 }
 
-std::vector<std::vector<int>> Ile::matrice_action_etat() {
+MatriceActionEtat Ile::matrice_action_etat() {
 
-    std::vector<std::vector<int>> matrice_action_etat;
+    MatriceActionEtat matrice_action_etat;
 
-    for(int y=0;y<get_taille_y();++y) {
-        for(int x=0;x<get_taille_x();++x) {
-            std::vector<int> tmp;
-            Position tmp_pos = std::make_pair(x,y);
-            std::map<CARDINAL, int> action_possible = actions_possibles(tmp_pos);
-
-            //Ordre particulier N S E O
-            if(action_possible.count(NORD)) {
-                tmp.push_back(action_possible[NORD]);
-            } else {
-                tmp.push_back(-1);
+    for (int y = 0; y < get_taille_y(); ++y) {
+        for (int x = 0; x < get_taille_x(); ++x) {
+            std::map<CARDINAL, int> tmp;
+            for (int i = 0; i < 4; i++) {
+                tmp.emplace((CARDINAL) i, -1);
+            }
+            auto action_possibles = actions_possibles(std::make_pair(x, y));
+            for (auto&[key, value]: action_possibles) {
+                tmp[key] = value;
             }
 
-            if(action_possible.count(SUD)) {
-                tmp.push_back(action_possible[SUD]);
-            } else {
-                tmp.push_back(-1);
-            }
-
-            if(action_possible.count(EST)) {
-                tmp.push_back(action_possible[EST]);
-            } else {
-                tmp.push_back(-1);
-            }
-
-            if(action_possible.count(OUEST)) {
-                tmp.push_back(action_possible[OUEST]);
-            } else {
-                tmp.push_back(-1);
-            }
-
-            matrice_action_etat.push_back(tmp);
+            matrice_action_etat.emplace(std::make_pair(x, y), tmp);
         }
     }
 
@@ -93,29 +82,55 @@ std::vector<std::vector<int>> Ile::matrice_action_etat() {
 
 }
 
-std::vector<int> Ile::faire_action(Position etat, CARDINAL action) {
 
-    Position position;
-    switch (action) {
-        case NORD:
-            position = std::make_pair(etat.first, etat.second - 1);
-            break;
-        case EST:
-            position = std::make_pair(etat.first+ 1, etat.second );
-            break;
-        case SUD:
-            position = std::make_pair(etat.first , etat.second+ 1);
-            break;
-        case OUEST:
-            position = std::make_pair(etat.first- 1, etat.second );
-            break;
-    }
+Position Ile::faire_action(Position etat, CARDINAL action) {
 
-    return matrice_action_etat()[position.second];
+    Position pos = nouvelle_position(etat, action);
+    assert(pos.first >= 0 && pos.second >= 0);
+    return pos;
 }
 
-void Ile::passe(Position position) {
-
+int Ile::passe(Position position) {
+    int tmp = carte[position.second][position.first];
     carte[position.second][position.first] = 0;
+    return tmp;
+}
+
+Position Ile::nouvelle_position(Position etat, CARDINAL cardinal) {
+    Position _position;
+    switch (cardinal) {
+        case NORD:
+            _position = std::make_pair(etat.first, etat.second - 1);
+            break;
+        case EST:
+            _position = std::make_pair(etat.first + 1, etat.second);
+            break;
+        case SUD:
+            _position = std::make_pair(etat.first, etat.second + 1);
+            break;
+        case OUEST:
+            _position = std::make_pair(etat.first - 1, etat.second);
+            break;
+    }
+    assert(_position.first >= 0 && _position.second >= 0);
+    return _position;
+}
+
+CARDINAL Ile::gen_alea_action(Position _position) {
+    assert(_position.first >= 0 && _position.first < tailleX && _position.second >= 0 && _position.second < tailleY);
+    std::map<CARDINAL, int> action_possible = actions_possibles(_position);
+
+    std::vector<CARDINAL> tmp;
+
+    tmp.reserve(action_possible.size());
+    for (auto &item: action_possible) {
+        tmp.push_back(item.first);
+    }
+
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<int> distribution(0, tmp.size() - 1);
+
+    return tmp[distribution(gen)];
 
 }
