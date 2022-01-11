@@ -36,7 +36,7 @@ public:
 
     double gen_alea_epsilon_greedy();
 
-    void deplacement();
+    bool deplacement();
 
     void faireMouvementActions(const std::map<CARDINAL, int> &actions);
 
@@ -49,6 +49,8 @@ public:
     bool a_trouver_tresor() const {
         return trouver_tresor;
     }
+
+    int get_nb_deplacement() const { return nb_deplacement; }
 
 };
 

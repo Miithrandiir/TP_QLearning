@@ -98,7 +98,7 @@ CARDINAL Agent::meilleur_action(Position etat) {
     return action;
 }
 
-int Agent::random_step(Ile &_ile, Position pos, int nb_steps_max) {
+int Agent::random_step(Ile _ile, Position pos, int nb_steps_max) {
 
     int step = 0;
 
@@ -112,4 +112,30 @@ int Agent::random_step(Ile &_ile, Position pos, int nb_steps_max) {
 
     return nb_steps_max - step;
 
+}
+
+int Agent::monte_carlo(Position pos, Ile _ile, int nb_steps_max) {
+    int step = 0;
+
+    Position position = pos;
+
+    while(_ile.get_carte()[position.second][position.first] != TRESOR && step < nb_steps_max) {
+        _ile.passe(position);
+
+        auto actions = _ile.actions_possibles(position);
+        int max = std::numeric_limits<int>::min();
+        CARDINAL max_action;
+        for(auto _a : actions) {
+
+            int res = random_step(_ile, _ile.nouvelle_position(position, _a.first), nb_steps_max);
+            if(res > max) {
+                max_action = _a.first;
+                max = res;
+            }
+        }
+
+        position = _ile.nouvelle_position(position, max_action);
+        step++;
+    }
+    return nb_steps_max - step;
 }

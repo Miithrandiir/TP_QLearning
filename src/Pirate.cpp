@@ -27,8 +27,6 @@ void Pirate::faireMouvement(CARDINAL cardinal) {
     }
     butin += ile.get_carte()[position.second][position.first];
     if(ile.get_carte()[position.second][position.first] == TRESOR) {
-
-        std::cout << "Le pirate a trouvé le trésor !!" << '\n' << "Il part avec un butin de " << butin << std::endl;
         this->trouver_tresor = true;
 
     }
@@ -70,20 +68,23 @@ void Pirate::faireMouvementActions(const std::map<CARDINAL, int> &actions) {
     faireMouvement(meilleur_actions.first);
 }
 
-void Pirate::deplacement() {
-    if(nb_deplacement > MAX_MOUVEMENT) {
-        std::cout << "Le pirate n'a pas trouvé de trésor en moins de 20 déplacements" << '\n' << "Il part avec un butin de " << butin;
-        exit(0);
-    }
-    double rand = gen_alea_epsilon_greedy();
-    nb_deplacement++;
-    auto actions = ile.actions_possibles(get_position());
-    if (rand > epsilon) {
-        faireMouvementAleatoire(actions);
-    } else {
-        faireMouvementActions(actions);
+bool Pirate::deplacement() {
+    if(nb_deplacement > MAX_MOUVEMENT || a_trouver_tresor()) {
+        return false;
     }
 
+    while(nb_deplacement < MAX_MOUVEMENT && !a_trouver_tresor()) {
+        double rand = gen_alea_epsilon_greedy();
+        nb_deplacement++;
+        auto actions = ile.actions_possibles(get_position());
+        if (rand > epsilon) {
+            faireMouvementAleatoire(actions);
+        } else {
+            faireMouvementActions(actions);
+        }
+    }
+
+    return true;
 }
 
 Position Pirate::gen_alea_position() {

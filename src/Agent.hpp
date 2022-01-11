@@ -55,7 +55,9 @@ public:
 
     void afficher_q();
 
-    int random_step(Ile& _ile, Position pos, int nb_steps_max);
+    int random_step(Ile _ile, Position pos, int nb_steps_max);
+
+    int monte_carlo(Position pos, Ile _ile, int nb_steps_max);
 
 };
 
